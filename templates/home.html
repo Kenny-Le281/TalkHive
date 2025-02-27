@@ -1,4 +1,7 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
+
+{% block title %}Welcome to the Chat Room{% endblock %}
+
 {% block content %}
 <form method="post" class="buttons">
   <h3>Welcome to the Chat Room</h3>
@@ -10,7 +13,7 @@
       type="text"
       placeholder="Pick a name!"
       name="name"
-      value="{{name}}"
+      value="{{ name }}"
     />
   </div>
 
@@ -21,9 +24,23 @@
       type="text"
       placeholder="Room Code"
       name="code"
-      value="{{code}}"
+      value="{{ code }}"
     />
   </div>
+
+  <!-- Dropdown for Predefined Rooms -->
+  <div class="input-box">
+    <label for="predefined-room">Or join a predefined room:</label>
+    <select name="predefined-room" id="predefined-room">
+        <option value="">Select a room...</option>
+        <option value="SPORTS">Sports</option>
+        <option value="BUSINESS">Business</option>
+        <option value="TECHNOLOGY">Technology</option>
+        <option value="MUSIC">Music</option>
+        <option value="ART">Art</option>
+    </select>
+</div>
+
 
   <div class="join">
     <button type="submit" name="join">Join a Room</button>
@@ -32,7 +49,7 @@
 
   {% if error %}
   <ul>
-    <li class="error">{{error}}</li>
+    <li class="error">{{ error }}</li>
   </ul>
   {% endif %}
 </form>

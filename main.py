@@ -7,7 +7,13 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "hjhjsdahhds"
 socketio = SocketIO(app)
 
-rooms = {}
+rooms = {
+    "SPORTS": {"members": 0, "messages": []},
+    "BUSINESS": {"members": 0, "messages": []},
+    "TECHNOLOGY": {"members": 0, "messages": []},
+    "MUSIC": {"members": 0, "messages": []},
+    "ART": {"members": 0, "messages": []}
+}
 
 def generate_unique_code(length):
     while True:
@@ -26,21 +32,21 @@ def home():
     if request.method == "POST":
         name = request.form.get("name")
         code = request.form.get("code")
-        join = request.form.get("join", False)
+        predefined_room = request.form.get("predefined-room")
         create = request.form.get("create", False)
 
         if not name:
-            return render_template("home.html", error="Please enter a name.", code=code, name=name)
+            return render_template("home.html", error="Please enter a name.", code=code, predefined_room=predefined_room, name=name)
 
-        if join != False and not code:
-            return render_template("home.html", error="Please enter a room code.", code=code, name=name)
+        if not (code or predefined_room):
+            return render_template("home.html", error="Please enter a room code or select a predefined room.", code=code, predefined_room=predefined_room, name=name)
         
-        room = code
-        if create != False:
+        room = predefined_room or code
+        if create:
             room = generate_unique_code(4)
             rooms[room] = {"members": 0, "messages": []}
-        elif code not in rooms:
-            return render_template("home.html", error="Room does not exist.", code=code, name=name)
+        elif room not in rooms:
+            return render_template("home.html", error="Room does not exist.", code=code, predefined_room=predefined_room, name=name)
         
         session["room"] = room
         session["name"] = name
