@@ -3,10 +3,13 @@ from flask_socketio import join_room, leave_room, send, SocketIO
 import random
 from string import ascii_uppercase
 
-app = Flask(__name__)
+# Initialize Flask App
+app = Flask(__name__)  # Create a new Flask web application
 app.config["SECRET_KEY"] = "hjhjsdahhds"
-socketio = SocketIO(app)
+socketio = SocketIO(app) # Initialize Flask-SocketIO to handle WebSocket communication
 
+# Dictionary to store rooms and their member count and messages
+# Here these are examples of predetermined rooms initally with no memebers and no messages
 rooms = {
     "SPORTS": {"members": 0, "messages": []},
     "BUSINESS": {"members": 0, "messages": []},
@@ -15,17 +18,20 @@ rooms = {
     "ART": {"members": 0, "messages": []}
 }
 
+# Generating a unique code room
 def generate_unique_code(length):
     while True:
         code = ""
-        for _ in range(length):
-            code += random.choice(ascii_uppercase)
+        for i in range(length):
+            code += random.choice(ascii_uppercase) # Generating random code
         
+        # Ensure the code is unique and not already used as a room code
         if code not in rooms:
             break
     
     return code
 
+# Route for the home page where users can join or create a room
 @app.route("/", methods=["POST", "GET"])
 def home():
     session.clear()
@@ -34,6 +40,8 @@ def home():
         code = request.form.get("code")
         predefined_room = request.form.get("predefined-room")
         create = request.form.get("create", False)
+
+        # Validate user input
 
         if not name:
             return render_template("home.html", error="Please enter a name.", code=code, predefined_room=predefined_room, name=name)
@@ -50,31 +58,36 @@ def home():
         
         session["room"] = room
         session["name"] = name
-        return redirect(url_for("room"))
+        return redirect(url_for("room")) # Redirect the user to the room page
 
     return render_template("home.html")
 
+
+
+# Route for the room page where users can chat in real-time
 @app.route("/room")
 def room():
     room = session.get("room")
     if room is None or session.get("name") is None or room not in rooms:
         return redirect(url_for("home"))
 
+    # Render the room page with the room code and messages history
     return render_template("room.html", code=room, messages=rooms[room]["messages"])
 
 @socketio.on("message")
 def message(data):
     room = session.get("room")
     if room not in rooms:
-        return 
+        return None
     
+    # Create a message object with the sender's name and message content
     content = {
         "name": session.get("name"),
         "message": data["data"]
     }
-    send(content, to=room)
-    rooms[room]["messages"].append(content)
-    print(f"{session.get('name')} said: {data['data']}")
+    send(content, to=room) # Send the message to all users in the room via WebSocket
+    rooms[room]["messages"].append(content) # Store the message in the room's message history
+    print(f"{session.get('name')} said: {data['data']}") # Print the messafe to the console
 
 @socketio.on("connect")
 def connect(auth):
